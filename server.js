@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -219,10 +219,10 @@ app.delete("/api/players", async (req, res) => {
 // AVVIO SERVER
 // ==========================================
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
 
     console.log(
-        `Server avviato su http://localhost:${PORT}`
+        `Server avviato sulla porta ${PORT}`
     );
 
 });
