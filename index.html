@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Passaparola</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #101010;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+
+        /* MENU */
+
+        #menuScreen button {
+            width: 280px;
+            padding: 18px;
+            margin: 10px;
+            border-radius: 12px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+
+        #menuScreen button:hover {
+            background: #333;
+            transform: scale(1.03);
+        }
+
+        #adminButton {
+            margin-top: 30px !important;
+            width: 180px !important;
+            padding: 10px !important;
+            font-size: 14px !important;
+            border-color: #444 !important;
+            color: #aaa !important;
+        }
+
+        /* INPUT GENERALI */
+
+        input,
+        textarea,
+        select {
+            font-family: inherit;
+        }
+
+        /* NOME / LOGIN */
+
+        #playerScreen input,
+        #adminLoginScreen input {
+            width: 280px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            background: #222;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        #continueButton,
+        #adminLoginButton {
+            width: 280px;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #2196f3;
+            color: white;
+            font-size: 18px;
+        }
+
+        #adminBackButton {
+            width: 280px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background: #222;
+            color: white;
+            font-size: 16px;
+        }
+
+        /* GIOCO */
+
+        #gameScreen {
+            overflow: hidden;
+        }
+
+        .game-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-name-display,
+        .score-display {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .wheel {
+            position: relative;
+            width: min(90vw, 620px);
+            height: min(90vw, 620px);
+        }
+
+        #letters {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .letter {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            width: 48px;
+            height: 48px;
+
+            margin-left: -24px;
+            margin-top: -24px;
+
+            border-radius: 50%;
+            border: 2px solid #666;
+
+            background: #222;
+            color: white;
+
+            font-size: 17px;
+
+            transform:
+                rotate(var(--angle))
+                translateY(-270px)
+                rotate(calc(var(--angle) * -1));
+
+            transition: 0.2s;
+        }
+
+        .letter:hover {
+            background: #333;
+
+            transform:
+                rotate(var(--angle))
+                translateY(-270px)
+                rotate(calc(var(--angle) * -1))
+                scale(1.15);
+        }
+
+        .letter.correct {
+            background: #19b84a;
+            border-color: #19b84a;
+        }
+
+        .letter.wrong {
+            background: #e53935;
+            border-color: #e53935;
+        }
+
+        .letter.passed {
+            background: #f4c430;
+            border-color: #f4c430;
+            color: black;
+        }
+
+        .center-score {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            width: 160px;
+            height: 160px;
+
+            border-radius: 50%;
+
+            background: #181818;
+            border: 3px solid #555;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        #scoreDisplay {
+            font-size: 38px;
+            margin-top: 5px;
+        }
+
+        /* DOMANDA */
+
+        #questionScreen {
+            justify-content: flex-start;
+            padding-top: 60px;
+        }
+
+        #questionLetter {
+            width: 90px;
+            height: 90px;
+
+            border-radius: 50%;
+
+            background: #222;
+            border: 3px solid #777;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 42px;
+            font-weight: bold;
+
+            margin-bottom: 25px;
+        }
+
+        #questionText {
+            width: min(750px, 90vw);
+            font-size: 24px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        #timer {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        #answerInput {
+            width: min(550px, 90vw);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .question-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #submitButton,
+        #passButton {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        #submitButton {
+            background: #19b84a;
+            color: white;
+        }
+
+        #passButton {
+            background: #f4c430;
+            color: black;
+        }
+
+        #resultMessage {
+            width: min(750px, 90vw);
+            min-height: 35px;
+            margin-top: 25px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .correct-result {
+            color: #19b84a;
+        }
+
+        .wrong-result {
+            color: #ff5252;
+        }
+
+        .passed-result {
+            color: #f4c430;
+        }
+
+        /* FINE PARTITA */
+
+        .final-box {
+            width: min(500px, 90vw);
+            padding: 40px 25px;
+            border-radius: 20px;
+            background: #181818;
+            border: 2px solid #444;
+        }
+
+        .final-title {
+            font-size: 38px;
+            margin-bottom: 15px;
+        }
+
+        .final-player {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+
+        .final-score-label {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .final-score {
+            font-size: 70px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .final-correct {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        #returnMenuButton {
+            width: 280px;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            background: #2196f3;
+            color: white;
+            font-size: 18px;
+        }
+
+        /* ADMIN */
+
+        #adminScreen {
+            justify-content: flex-start;
+            padding-top: 40px;
+        }
+
+        .admin-box {
+            width: min(850px, 95vw);
+            padding: 30px 20px;
+            border-radius: 20px;
+            background: #181818;
+            border: 2px solid #444;
+        }
+
+        .admin-box h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .admin-subtitle {
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+
+        .admin-button {
+            width: 100%;
+            padding: 16px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            background: #222;
+            color: white;
+            font-size: 17px;
+        }
+
+        .admin-button:hover {
+            background: #333;
+        }
+
+        .danger-button {
+            background: #b71c1c;
+        }
+
+        .danger-button:hover {
+            background: #d32f2f;
+        }
+
+        .admin-back {
+            background: #2196f3;
+        }
+
+        /* EDITOR */
+
+        .editor-box {
+            width: min(850px, 95vw);
+            padding: 30px 20px;
+            border-radius: 20px;
+            background: #181818;
+            border: 2px solid #444;
+        }
+
+        .editor-box h2 {
+            margin-top: 0;
+        }
+
+        .letter-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .letter-selector button {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-weight: bold;
+        }
+
+        .letter-selector button.active {
+            background: #2196f3;
+            border-color: #2196f3;
+        }
+
+        .editor-label {
+            display: block;
+            text-align: left;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        #editQuestion {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 17px;
+        }
+
+        #editAnswer {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 17px;
+        }
+
+        #editAcceptedAnswers {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 17px;
+        }
+
+        .editor-help {
+            text-align: left;
+            color: #999;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .editor-actions button {
+            flex: 1;
+            min-width: 180px;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        #saveQuestionButton {
+            background: #19b84a;
+            color: white;
+        }
+
+        #resetQuestionButton {
+            background: #555;
+            color: white;
+        }
+
+        #closeEditorButton {
+            background: #2196f3;
+            color: white;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 650px) {
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .wheel {
+                width: 95vw;
+                height: 95vw;
+            }
+
+            .letter {
+                width: 38px;
+                height: 38px;
+                margin-left: -19px;
+                margin-top: -19px;
+                font-size: 14px;
+
+                transform:
+                    rotate(var(--angle))
+                    translateY(-42vw)
+                    rotate(calc(var(--angle) * -1));
+            }
+
+            .letter:hover {
+                transform:
+                    rotate(var(--angle))
+                    translateY(-42vw)
+                    rotate(calc(var(--angle) * -1))
+                    scale(1.1);
+            }
+
+            .center-score {
+                width: 110px;
+                height: 110px;
+            }
+
+            #scoreDisplay {
+                font-size: 28px;
+            }
+
+            #questionText {
+                font-size: 20px;
+            }
+
+            .final-title {
+                font-size: 30px;
+            }
+
+            .final-score {
+                font-size: 55px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MENU -->
+
+    <div id="menuScreen" class="screen">
+
+        <h1>🎌 ANIME PASSAPAROLA</h1>
+
+        <button id="startButton">▶ AVVIA PARTITA</button>
+
+        <button id="rankingButton">🏆 CLASSIFICA</button>
+
+        <button id="adminButton">🔐 ADMIN</button>
+
+    </div>
+
+
+    <!-- NOME -->
+
+    <div id="playerScreen" class="screen" style="display: none;">
+
+        <h2>Inserisci il tuo nome</h2>
+
+        <input
+            type="text"
+            id="playerName"
+            placeholder="Il tuo nome"
+            maxlength="20"
+            autocomplete="off"
+        >
+
+        <button id="continueButton">
+            CONTINUA
+        </button>
+
+    </div>
+
+
+    <!-- LOGIN ADMIN -->
+
+    <div id="adminLoginScreen" class="screen" style="display: none;">
+
+        <h2>🔐 Accesso Admin</h2>
+
+        <input
+            type="password"
+            id="adminPassword"
+            placeholder="Password"
+            autocomplete="off"
+        >
+
+        <button id="adminLoginButton">
+            ACCEDI
+        </button>
+
+        <button id="adminBackButton">
+            ← INDIETRO
+        </button>
+
+    </div>
+
+
+    <!-- ADMIN -->
+
+    <div id="adminScreen" class="screen" style="display: none;">
+
+        <div class="admin-box">
+
+            <h2>🔐 PANNELLO ADMIN</h2>
+
+            <div class="admin-subtitle">
+                Gestione Anime Passaparola
+            </div>
+
+            <button id="editQuestionsButton" class="admin-button">
+                📝 MODIFICA DOMANDE
+            </button>
+
+            <button id="adminRankingButton" class="admin-button">
+                🏆 GESTISCI CLASSIFICA
+            </button>
+
+            <button id="clearRankingButton" class="admin-button danger-button">
+                🗑 SVUOTA CLASSIFICA
+            </button>
+
+            <button id="adminBackToMenuButton" class="admin-button admin-back">
+                ← TORNA AL MENU
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- EDITOR DOMANDE -->
+
+    <div id="questionEditorScreen" class="screen" style="display: none;">
+
+        <div class="editor-box">
+
+            <h2>📝 MODIFICA DOMANDE</h2>
+
+            <div class="admin-subtitle">
+                Seleziona una lettera e modifica la relativa domanda.
+            </div>
+
+            <div id="letterSelector" class="letter-selector"></div>
+
+            <label class="editor-label">
+                DOMANDA
+            </label>
+
+            <textarea id="editQuestion"></textarea>
+
+            <label class="editor-label">
+                RISPOSTA VISUALIZZATA
+            </label>
+
+            <input type="text" id="editAnswer">
+
+            <label class="editor-label">
+                RISPOSTE ACCETTATE
+            </label>
+
+            <textarea
+                id="editAcceptedAnswers"
+                placeholder="Una risposta per riga"
+            ></textarea>
+
+            <div class="editor-help">
+                Inserisci una risposta per riga. Le risposte devono rispettare la lettera del Passaparola.
+            </div>
+
+            <div class="editor-actions">
+
+                <button id="saveQuestionButton">
+                    💾 SALVA DOMANDA
+                </button>
+
+                <button id="resetQuestionButton">
+                    🔄 RIPRISTINA ORIGINALE
+                </button>
+
+                <button id="closeEditorButton">
+                    ← TORNA ALL'ADMIN
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- GIOCO -->
+
+    <div id="gameScreen" class="screen" style="display: none;">
+
+        <div class="game-header">
+
+            <div class="player-name-display">
+                👤 <span id="playerNameDisplay"></span>
+            </div>
+
+            <div class="score-display">
+                Punti: <span id="topScoreDisplay">0</span>
+            </div>
+
+        </div>
+
+        <div class="wheel">
+
+            <div id="letters"></div>
+
+            <div class="center-score">
+
+                <div>PUNTI</div>
+
+                <span id="scoreDisplay">0</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DOMANDA -->
+
+    <div id="questionScreen" class="screen" style="display: none;">
+
+        <div id="questionLetter">A</div>
+
+        <div id="questionText">Domanda</div>
+
+        <div id="timer">Tempo: 30</div>
+
+        <input
+            type="text"
+            id="answerInput"
+            placeholder="Scrivi la risposta..."
+            autocomplete="off"
+        >
+
+        <div class="question-buttons">
+
+            <button id="submitButton">
+                ✓ CONFERMA
+            </button>
+
+            <button id="passButton">
+                ⏭ PASSA
+            </button>
+
+        </div>
+
+        <div id="resultMessage"></div>
+
+    </div>
+
+
+    <!-- FINE PARTITA -->
+
+    <div id="endScreen" class="screen" style="display: none;">
+
+        <div class="final-box">
+
+            <div class="final-title">
+                🏆 PARTITA TERMINATA
+            </div>
+
+            <div class="final-player">
+                👤 <span id="finalPlayerName"></span>
+            </div>
+
+            <div class="final-score-label">
+                PUNTEGGIO
+            </div>
+
+            <div class="final-score">
+                <span id="finalScore">0</span>/26
+            </div>
+
+            <div class="final-correct">
+                Risposte corrette: <span id="finalCorrect">0</span>
+            </div>
+
+            <button id="returnMenuButton">
+                ← TORNA AL MENU
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
