@@ -2777,6 +2777,16 @@ function applySavedGameState(state) {
     // domanda venga passata una seconda volta.
     saveGameState();
 
+    // IMPORTANTISSIMO:
+    // dopo il ripristino controlliamo immediatamente se il
+    // giro corrente è già terminato. In questo modo non si
+    // rimane bloccati sulla ruota quando, prima del refresh,
+    // tutte le lettere erano già state risolte.
+    //
+    // Se ci sono ancora lettere giocabili, checkRound()
+    // non cambia schermata e lascia la ruota attiva.
+    checkRound();
+
 }
 
 
