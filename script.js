@@ -160,6 +160,57 @@ let editingLetter = "A";
 
 
 // ==========================================
+// PROTEZIONE PARTITA / ANTI-REFRESH
+// ==========================================
+
+const GAME_STATE_KEY = "animePassaparolaActiveGame";
+
+// Se una domanda viene interrotta da refresh, chiusura
+// della pagina o perdita della connessione, la lettera
+// viene conservata per il secondo giro ma con una domanda
+// alternativa.
+let replacementLetters = {};
+let activeQuestion = false;
+
+
+
+// ==========================================
+// DOMANDE ALTERNATIVE ANTI-CHEAT
+// ==========================================
+
+const alternateQuestions = {
+
+    A: { question: "Quale personaggio di One Piece è il comandante della Prima Divisione di Barbabianca?", acceptedAnswers: ["Marco"], correctDisplay: "Marco" },
+    B: { question: "Quale personaggio di One Piece è uno scheletro musicista della ciurma di Luffy?", acceptedAnswers: ["Brook"], correctDisplay: "Brook" },
+    C: { question: "Quale personaggio di One Piece è una renna e il medico della ciurma di Luffy?", acceptedAnswers: ["Chopper", "Tony Tony Chopper"], correctDisplay: "Chopper" },
+    D: { question: "Quale personaggio di One Piece è il principale nemico dell'arco di Dressrosa?", acceptedAnswers: ["Doflamingo", "Donquixote Doflamingo"], correctDisplay: "Doflamingo" },
+    E: { question: "Quale personaggio di Fullmetal Alchemist è il fratello di Alphonse?", acceptedAnswers: ["Edward", "Edward Elric"], correctDisplay: "Edward Elric" },
+    F: { question: "Quale membro della ciurma di Cappello di Paglia è un cyborg e carpentiere?", acceptedAnswers: ["Franky"], correctDisplay: "Franky" },
+    G: { question: "Quale Saiyan viene anche chiamato Kakarot?", acceptedAnswers: ["Goku", "Son Goku"], correctDisplay: "Goku" },
+    H: { question: "Quale personaggio di Hunter x Hunter è famoso per usare carte da gioco?", acceptedAnswers: ["Hisoka", "Hisoka Morow"], correctDisplay: "Hisoka Morow" },
+    I: { question: "Quale membro del clan Uchiha è il fratello maggiore di Sasuke?", acceptedAnswers: ["Itachi", "Itachi Uchiha"], correctDisplay: "Itachi Uchiha" },
+    J: { question: "Quale protagonista di JoJo usa lo Stand Star Platinum?", acceptedAnswers: ["Jotaro", "Jotaro Kujo"], correctDisplay: "Jotaro Kujo" },
+    K: { question: "Quale membro della famiglia Zoldyck è il migliore amico di Gon?", acceptedAnswers: ["Killua", "Killua Zoldyck"], correctDisplay: "Killua Zoldyck" },
+    L: { question: "Quale detective di Death Note è conosciuto con la sola lettera L?", acceptedAnswers: ["L", "L Lawliet", "Lawliet"], correctDisplay: "L" },
+    M: { question: "Quale soldatessa di Attack on Titan appartiene al clan Ackerman?", acceptedAnswers: ["Mikasa", "Mikasa Ackerman"], correctDisplay: "Mikasa Ackerman" },
+    N: { question: "Quale ninja sogna di diventare Hokage nel Villaggio della Foglia?", acceptedAnswers: ["Naruto", "Naruto Uzumaki"], correctDisplay: "Naruto Uzumaki" },
+    O: { question: "Quale opera segue il viaggio di Monkey D. Luffy alla ricerca del grande tesoro?", acceptedAnswers: ["One Piece"], correctDisplay: "One Piece" },
+    P: { question: "Quale Pokémon elettrico è il compagno più famoso di Ash?", acceptedAnswers: ["Pikachu"], correctDisplay: "Pikachu" },
+    Q: { question: "Come vengono chiamati i poteri speciali in My Hero Academia?", acceptedAnswers: ["Quirk"], correctDisplay: "Quirk" },
+    R: { question: "Qual è il nome completo dello spadaccino Zoro?", acceptedAnswers: ["Roronoa Zoro", "Roronoa"], correctDisplay: "Roronoa Zoro" },
+    S: { question: "Quale cuoco della ciurma di Luffy combatte principalmente usando i calci?", acceptedAnswers: ["Sanji"], correctDisplay: "Sanji" },
+    T: { question: "Quale personaggio di Demon Slayer è il fratello di Nezuko?", acceptedAnswers: ["Tanjiro", "Tanjiro Kamado"], correctDisplay: "Tanjiro Kamado" },
+    U: { question: "Quale ex Shinigami gestisce l'Urahara Shop in Bleach?", acceptedAnswers: ["Urahara", "Kisuke Urahara"], correctDisplay: "Urahara" },
+    V: { question: "Quale Saiyan è il principe della sua razza e rivale di Goku?", acceptedAnswers: ["Vegeta"], correctDisplay: "Vegeta" },
+    W: { question: "Quale pirata di One Piece era conosciuto come Barbabianca?", acceptedAnswers: ["Whitebeard", "Barbabianca", "Edward Newgate"], correctDisplay: "Whitebeard" },
+    X: { question: "Quale versione alternativa di Goku appare in Super Dragon Ball Heroes?", acceptedAnswers: ["Xeno Goku"], correctDisplay: "Xeno Goku" },
+    Y: { question: "Quale mago di Black Clover è il principale rivale di Asta?", acceptedAnswers: ["Yuno", "Yuno Grinberryall"], correctDisplay: "Yuno Grinberryall" },
+    Z: { question: "Quale spadaccino di One Piece combatte usando tre spade?", acceptedAnswers: ["Zoro", "Roronoa Zoro"], correctDisplay: "Zoro" }
+
+};
+
+
+// ==========================================
 // PASSWORD ADMIN
 // ==========================================
 
@@ -831,6 +882,11 @@ function startGame() {
 
     round = 1;
 
+    replacementLetters = {};
+    activeQuestion = false;
+    currentLetter = "";
+    clearGameState();
+
 
     for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
 
@@ -866,6 +922,183 @@ for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
     letterStatus[letter] = "pending";
 
 }
+
+
+// ==========================================
+// STATO PARTITA
+// ==========================================
+
+function saveGameState() {
+
+    if (!playerName || !currentLetter || !activeQuestion) {
+        return;
+    }
+
+    const state = {
+        playerName,
+        score,
+        correctAnswers,
+        round,
+        currentLetter,
+        timeLeft,
+        letterStatus: { ...letterStatus },
+        replacementLetters: { ...replacementLetters },
+        activeQuestion: true,
+        savedAt: Date.now()
+    };
+
+    try {
+        localStorage.setItem(
+            GAME_STATE_KEY,
+            JSON.stringify(state)
+        );
+    } catch (error) {
+        console.error("Errore salvataggio stato partita:", error);
+    }
+
+}
+
+
+function clearGameState() {
+
+    try {
+        localStorage.removeItem(GAME_STATE_KEY);
+    } catch (error) {
+        console.error("Errore cancellazione stato partita:", error);
+    }
+
+}
+
+
+function restoreInterruptedGame() {
+
+    let rawState;
+
+    try {
+        rawState = localStorage.getItem(GAME_STATE_KEY);
+    } catch (error) {
+        return;
+    }
+
+    if (!rawState) {
+        return;
+    }
+
+    let state;
+
+    try {
+        state = JSON.parse(rawState);
+    } catch (error) {
+        clearGameState();
+        return;
+    }
+
+    if (!state || !state.activeQuestion || !state.currentLetter) {
+        clearGameState();
+        return;
+    }
+
+    playerName = state.playerName || "Giocatore";
+    score = Number(state.score) || 0;
+    correctAnswers = Number(state.correctAnswers) || 0;
+    round = Number(state.round) === 2 ? 2 : 1;
+
+    for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+        letterStatus[letter] =
+            state.letterStatus && state.letterStatus[letter]
+                ? state.letterStatus[letter]
+                : "pending";
+    }
+
+    replacementLetters =
+        state.replacementLetters || {};
+
+    const interruptedLetter = state.currentLetter;
+
+    // Un refresh/chiusura durante una domanda equivale a PASSA,
+    // ma rende inutilizzabile la domanda originale al secondo giro.
+    if (round === 1) {
+        letterStatus[interruptedLetter] = "passed";
+        replacementLetters[interruptedLetter] = true;
+    } else {
+        // Nel secondo giro non lasciamo la lettera nuovamente giocabile: 
+        // la domanda interrotta viene considerata persa.
+        letterStatus[interruptedLetter] = "wrong";
+    }
+
+    currentLetter = "";
+    activeQuestion = false;
+
+    clearGameState();
+
+    playerNameDisplay.textContent = playerName;
+
+    playerScreen.style.display = "none";
+    questionScreen.style.display = "none";
+    endScreen.style.display = "none";
+    gameScreen.style.display = "flex";
+
+    updateScore();
+    createLetters();
+
+    alert(
+        "⚠️ La domanda è stata considerata PASSATA perché la partita è stata interrotta.\n\n" +
+        "Per evitare vantaggi, nel secondo giro verrà utilizzata una domanda diversa."
+    );
+
+}
+
+
+// ==========================================
+// RILEVAMENTO REFRESH / CHIUSURA / OFFLINE
+// ==========================================
+
+window.addEventListener("beforeunload", () => {
+
+    if (activeQuestion && currentLetter) {
+        saveGameState();
+    }
+
+});
+
+
+window.addEventListener("offline", () => {
+
+    if (!activeQuestion || !currentLetter) {
+        return;
+    }
+
+    // Salviamo immediatamente lo stato. Al prossimo caricamento
+    // la domanda verrà invalidata e sostituita nel secondo giro.
+    saveGameState();
+
+    clearInterval(timer);
+
+    answerInput.disabled = true;
+    submitButton.disabled = true;
+    passButton.disabled = true;
+
+    letterStatus[currentLetter] = "passed";
+    replacementLetters[currentLetter] = true;
+    activeQuestion = false;
+
+    resultMessage.textContent =
+        "🌐 CONNESSIONE PERSA — domanda passata automaticamente";
+
+    resultMessage.className = "passed-result";
+
+    createLetters();
+
+    clearGameState();
+
+    returnToWheelAutomatically();
+
+});
+
+
+// Se esiste uno stato attivo salvato, significa che la pagina
+// è stata interrotta mentre una domanda era aperta.
+restoreInterruptedGame();
 
 
 // ==========================================
@@ -1023,6 +1256,7 @@ function openQuestion(letter) {
 
 
     currentLetter = letter;
+    activeQuestion = true;
 
 
     gameScreen.style.display = "none";
@@ -1034,8 +1268,14 @@ function openQuestion(letter) {
         letter;
 
 
+    const questionData =
+        round === 2 && replacementLetters[letter]
+            ? (alternateQuestions[letter] || questions[letter])
+            : questions[letter];
+
+
     questionText.textContent =
-        questions[letter].question;
+        questionData.question;
 
 
     answerInput.value = "";
@@ -1054,6 +1294,8 @@ function openQuestion(letter) {
 
 
     startTimer();
+
+    saveGameState();
 
 
     answerInput.focus();
@@ -1112,6 +1354,9 @@ function timeExpired() {
 
     letterStatus[currentLetter] =
         "wrong";
+
+    activeQuestion = false;
+    clearGameState();
 
 
     resultMessage.textContent =
@@ -1184,9 +1429,14 @@ function checkAnswer() {
         );
 
 
+    const questionData =
+        round === 2 && replacementLetters[currentLetter]
+            ? (alternateQuestions[currentLetter] || questions[currentLetter])
+            : questions[currentLetter];
+
+
     const acceptedAnswers =
-        questions[currentLetter]
-            .acceptedAnswers
+        questionData.acceptedAnswers
             .map(answer =>
                 normalizeAnswer(answer)
             );
@@ -1228,12 +1478,15 @@ function checkAnswer() {
 
 
         resultMessage.textContent =
-            `❌ SBAGLIATO! La risposta corretta era: ${questions[currentLetter].correctDisplay}`;
+            `❌ SBAGLIATO! La risposta corretta era: ${questionData.correctDisplay}`;
 
 
         resultMessage.className =
             "wrong-result";
     }
+
+    activeQuestion = false;
+    clearGameState();
 
 
     updateScore();
@@ -1262,6 +1515,9 @@ passButton.addEventListener("click", () => {
 
     letterStatus[currentLetter] =
         "passed";
+
+    activeQuestion = false;
+    clearGameState();
 
 
     resultMessage.textContent =
@@ -1296,6 +1552,9 @@ function returnToWheelAutomatically() {
         gameScreen.style.display =
             "flex";
 
+
+        activeQuestion = false;
+        currentLetter = "";
 
         checkRound();
 
@@ -2375,6 +2634,10 @@ async function showRanking() {
 
 function endGame() {
 
+    activeQuestion = false;
+    currentLetter = "";
+    clearGameState();
+
     clearInterval(timer);
 
     clearTimeout(returnTimer);
@@ -2429,6 +2692,10 @@ returnMenuButton.addEventListener(
         correctAnswers = 0;
 
         round = 1;
+        activeQuestion = false;
+        currentLetter = "";
+        replacementLetters = {};
+        clearGameState();
 
     }
 );
