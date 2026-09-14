@@ -715,54 +715,154 @@
 
     
         /* ==========================================
-           NWH SPLASH SCREEN
+           SPLASH SCREEN NWH
            ========================================== */
 
         #nwhSplash {
             position: fixed;
             inset: 0;
-            z-index: 99999;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            background: #000;
+            background: #03040a;
             opacity: 1;
             visibility: visible;
-            transition: opacity .9s ease, visibility .9s ease;
+            transition:
+                opacity 1s cubic-bezier(.65,0,.35,1),
+                visibility 1s;
         }
 
-        #nwhSplash.is-hidden {
+        #nwhSplash.nwh-hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        .nwhSplashImage {
+        .nwh-splash-image {
             position: absolute;
             inset: 0;
             background-image: url("nwh_splash.png");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            transform: scale(1.015);
-            animation: nwhSplashZoom 4s ease-out both;
+            animation: nwhImageIn 3.2s ease-out both;
         }
 
-        .nwhSplashVignette {
+        .nwh-splash-overlay {
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 42%, transparent 18%, rgba(0,0,0,.12) 52%, rgba(0,0,0,.55) 100%),
-                linear-gradient(to bottom, rgba(0,0,0,.08), transparent 60%, rgba(0,0,0,.45));
-            pointer-events: none;
+                radial-gradient(circle at 50% 46%,
+                    rgba(10,12,25,.05) 0%,
+                    rgba(3,4,10,.20) 48%,
+                    rgba(0,0,0,.72) 100%),
+                linear-gradient(
+                    180deg,
+                    rgba(0,0,0,.30) 0%,
+                    transparent 38%,
+                    rgba(0,0,0,.42) 100%
+                );
         }
 
-        @keyframes nwhSplashZoom {
-            from { transform: scale(1.04); filter: brightness(.78); }
-            to   { transform: scale(1.015); filter: brightness(1); }
+        .nwh-splash-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-2%);
+            animation: nwhContentIn 1.4s cubic-bezier(.16,1,.3,1) both;
         }
 
-        @media (max-width: 700px) {
-            .nwhSplashImage {
-                background-position: center center;
+        .nwh-logo {
+            font-family:
+                Impact,
+                Haettenschweiler,
+                "Arial Black",
+                sans-serif;
+            font-size: clamp(92px, 15vw, 220px);
+            line-height: .82;
+            letter-spacing: .06em;
+            padding-left: .06em;
+            font-weight: 900;
+            color: #fff;
+            -webkit-text-stroke: 1px rgba(255,255,255,.55);
+            text-shadow:
+                0 0 12px rgba(255,255,255,.55),
+                0 0 35px rgba(124,92,255,.65),
+                0 0 85px rgba(34,211,238,.32);
+            animation: nwhGlow 2.4s ease-in-out infinite alternate;
+        }
+
+        .nwh-presents {
+            margin-top: 22px;
+            font-size: clamp(14px, 1.5vw, 21px);
+            font-weight: 800;
+            letter-spacing: .72em;
+            padding-left: .72em;
+            color: rgba(255,255,255,.88);
+            text-transform: uppercase;
+            text-shadow: 0 0 22px rgba(124,92,255,.65);
+        }
+
+        @keyframes nwhImageIn {
+            from {
+                transform: scale(1.055);
+                filter: brightness(.72);
+            }
+            to {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+        }
+
+        @keyframes nwhContentIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px) scale(.96);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-2%) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes nwhGlow {
+            from {
+                filter: brightness(.95);
+            }
+            to {
+                filter: brightness(1.12);
+            }
+        }
+
+        @media (max-width: 650px) {
+            .nwh-splash-image {
+                background-position: center;
+            }
+
+            .nwh-logo {
+                font-size: clamp(76px, 24vw, 140px);
+            }
+
+            .nwh-presents {
+                margin-top: 16px;
+                letter-spacing: .48em;
+                padding-left: .48em;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #nwhSplash,
+            .nwh-splash-image,
+            .nwh-splash-content,
+            .nwh-logo {
+                animation: none !important;
             }
         }
 
@@ -772,11 +872,19 @@
 
 <body>
 
-    <!-- SPLASH NWH -->
-    <div id="nwhSplash" aria-label="NWH Presenta">
-        <div class="nwhSplashImage"></div>
-        <div class="nwhSplashVignette"></div>
+    <!-- ==========================================
+         SPLASH NWH — SCHERMATA SEPARATA
+         ========================================== -->
+    <div id="nwhSplash" aria-label="NWH PRESENTA">
+        <div class="nwh-splash-image"></div>
+        <div class="nwh-splash-overlay"></div>
+
+        <div class="nwh-splash-content">
+            <div class="nwh-logo">NWH</div>
+            <div class="nwh-presents">PRESENTA</div>
+        </div>
     </div>
+
 
 
     <!-- MENU -->
@@ -1039,20 +1147,17 @@
         (function () {
             const splash = document.getElementById("nwhSplash");
 
-            function hideNwhSplash() {
-                if (!splash) return;
+            if (!splash) return;
 
-                splash.classList.add("is-hidden");
+            window.addEventListener("load", function () {
+                // Mostra la presentazione NWH prima del menu.
+                setTimeout(function () {
+                    splash.classList.add("nwh-hidden");
 
-                setTimeout(() => {
-                    splash.remove();
-                }, 1000);
-            }
-
-            // Lo splash è solo una presentazione: non cambia né resetta
-            // la partita salvata e non interferisce con script.js.
-            window.addEventListener("load", () => {
-                setTimeout(hideNwhSplash, 2800);
+                    setTimeout(function () {
+                        splash.remove();
+                    }, 1050);
+                }, 2800);
             });
         })();
     </script>
