@@ -2706,9 +2706,7 @@ window.addEventListener("online", () => {
 // RIPRISTINO AUTOMATICO ALL'AVVIO
 // ==========================================
 
-setTimeout(() => {
-    restoreSavedGameState();
-}, 0);
+restoreSavedGameState();
 
 
 console.log(
