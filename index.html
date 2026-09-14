@@ -85,6 +85,16 @@
 
         h1, h2 { letter-spacing: -.8px; }
 
+        .legacy-presents {
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: var(--muted);
+            text-transform: uppercase;
+            text-shadow: 0 0 18px rgba(124,92,255,.18);
+        }
+
         h1 {
             font-size: clamp(42px, 6vw, 76px);
             line-height: .98;
@@ -706,6 +716,13 @@
             }
         }
 
+    
+        /* Le schermate nascoste dallo script devono restare realmente nascoste. */
+        .screen[style*="display: none"] {
+            display: none !important;
+            animation: none !important;
+        }
+
     </style>
 </head>
 
@@ -715,6 +732,7 @@
 
     <div id="menuScreen" class="screen">
 
+        <div class="legacy-presents">NWH LEGACY PRESENTA:</div>
         <h1>🎌 ANIME PASSAPAROLA</h1>
 
         <button id="startButton">▶ AVVIA PARTITA</button>
@@ -964,12 +982,6 @@
         </div>
 
     </div>
-
-
-    <script src="script.js"></script>
-
-</body>
-</html>
 
 
     <script src="script.js"></script>
