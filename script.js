@@ -170,9 +170,7 @@ const ADMIN_PASSWORD = "admin123";
 // SERVER
 // ==========================================
 
-// MODIFICATO:
-// prima era http://localhost:3000
-// ora usa lo stesso dominio del sito
+// usa lo stesso dominio del sito
 const API_BASE = "";
 
 
@@ -1466,32 +1464,892 @@ async function showRanking() {
         const players =
             result.players || [];
 
-
-        if (players.length === 0) {
-
-            alert(
-                "🏆 CLASSIFICA\n\nNon ci sono ancora partite registrate."
-            );
-
-            return;
-        }
-
-
-        let rankingText =
-            "🏆 CLASSIFICA ANIME PASSAPAROLA\n\n";
-
-
-        players.forEach(
-            (player, index) => {
-
-                rankingText +=
-                    `${index + 1}. ${player.username} — ${player.score}/26\n`;
-
-            }
+        // Ordina dal punteggio più alto al più basso.
+        players.sort(
+            (a, b) =>
+                Number(b.score) - Number(a.score)
         );
 
 
-        alert(rankingText);
+        // ==========================================
+        // CREA MODALE CLASSIFICA
+        // ==========================================
+
+        let modal =
+            document.getElementById(
+                "rankingModal"
+            );
+
+
+        if (!modal) {
+
+            modal =
+                document.createElement("div");
+
+            modal.id =
+                "rankingModal";
+
+
+            modal.innerHTML = `
+
+                <div class="ranking-overlay">
+
+                    <div class="ranking-panel">
+
+                        <button
+                            class="ranking-close"
+                            aria-label="Chiudi"
+                        >
+                            ×
+                        </button>
+
+
+                        <div class="ranking-header">
+
+                            <div class="ranking-trophy">
+                                🏆
+                            </div>
+
+                            <h2>
+                                CLASSIFICA
+                            </h2>
+
+                            <p>
+                                ANIME PASSAPAROLA
+                            </p>
+
+                        </div>
+
+
+                        <div class="ranking-list"></div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            document.body.appendChild(modal);
+
+
+            // ==========================================
+            // STILE CLASSIFICA
+            // ==========================================
+
+            const style =
+                document.createElement("style");
+
+            style.id =
+                "rankingModalStyle";
+
+
+            style.textContent = `
+
+                #rankingModal {
+
+                    position: fixed;
+
+                    inset: 0;
+
+                    z-index: 99999;
+
+                    display: none;
+
+                    font-family: inherit;
+
+                }
+
+
+                #rankingModal .ranking-overlay {
+
+                    position: absolute;
+
+                    inset: 0;
+
+                    display: flex;
+
+                    align-items: center;
+
+                    justify-content: center;
+
+                    padding: 20px;
+
+                    background: rgba(
+                        0,
+                        0,
+                        0,
+                        0.78
+                    );
+
+                    backdrop-filter: blur(7px);
+
+                    animation:
+                        rankingFadeIn
+                        0.2s ease;
+
+                }
+
+
+                #rankingModal .ranking-panel {
+
+                    position: relative;
+
+                    width: min(
+                        620px,
+                        100%
+                    );
+
+                    max-height: min(
+                        820px,
+                        90vh
+                    );
+
+                    overflow: hidden;
+
+                    border-radius: 24px;
+
+                    padding:
+                        28px
+                        22px
+                        22px;
+
+                    background:
+                        linear-gradient(
+                            145deg,
+                            #17152b,
+                            #0d0c18
+                        );
+
+                    border:
+                        1px solid
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.14
+                        );
+
+                    box-shadow:
+                        0 25px 80px
+                        rgba(
+                            0,
+                            0,
+                            0,
+                            0.65
+                        );
+
+                    color: white;
+
+                    animation:
+                        rankingPopIn
+                        0.25s ease;
+
+                }
+
+
+                #rankingModal .ranking-header {
+
+                    text-align: center;
+
+                    margin-bottom: 22px;
+
+                }
+
+
+                #rankingModal .ranking-trophy {
+
+                    font-size: 46px;
+
+                    line-height: 1;
+
+                    margin-bottom: 8px;
+
+                    filter:
+                        drop-shadow(
+                            0 5px 12px
+                            rgba(
+                                255,
+                                193,
+                                7,
+                                0.35
+                            )
+                        );
+
+                }
+
+
+                #rankingModal h2 {
+
+                    margin: 0;
+
+                    font-size:
+                        clamp(
+                            25px,
+                            5vw,
+                            36px
+                        );
+
+                    font-weight: 900;
+
+                    letter-spacing: 2px;
+
+                }
+
+
+                #rankingModal
+                .ranking-header p {
+
+                    margin:
+                        5px 0 0;
+
+                    opacity: 0.65;
+
+                    font-size: 12px;
+
+                    letter-spacing: 3px;
+
+                    font-weight: 700;
+
+                }
+
+
+                #rankingModal .ranking-close {
+
+                    position: absolute;
+
+                    top: 14px;
+
+                    right: 14px;
+
+                    width: 40px;
+
+                    height: 40px;
+
+                    border: 0;
+
+                    border-radius: 50%;
+
+                    background:
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.09
+                        );
+
+                    color: white;
+
+                    font-size: 28px;
+
+                    line-height: 1;
+
+                    cursor: pointer;
+
+                    transition:
+                        transform
+                        0.15s ease,
+                        background
+                        0.15s ease;
+
+                }
+
+
+                #rankingModal
+                .ranking-close:hover {
+
+                    transform:
+                        scale(1.08);
+
+                    background:
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.17
+                        );
+
+                }
+
+
+                #rankingModal .ranking-list {
+
+                    max-height:
+                        calc(
+                            min(
+                                820px,
+                                90vh
+                            )
+                            - 190px
+                        );
+
+                    overflow-y: auto;
+
+                    padding:
+                        4px
+                        5px
+                        8px
+                        2px;
+
+                }
+
+
+                #rankingModal
+                .ranking-list::-webkit-scrollbar {
+
+                    width: 7px;
+
+                }
+
+
+                #rankingModal
+                .ranking-list::-webkit-scrollbar-thumb {
+
+                    background:
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.2
+                        );
+
+                    border-radius: 20px;
+
+                }
+
+
+                #rankingModal .ranking-row {
+
+                    display: flex;
+
+                    align-items: center;
+
+                    gap: 12px;
+
+                    min-height: 64px;
+
+                    margin: 8px 0;
+
+                    padding:
+                        10px
+                        14px;
+
+                    border-radius: 16px;
+
+                    background:
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.055
+                        );
+
+                    border:
+                        1px solid
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.07
+                        );
+
+                    transition:
+                        transform
+                        0.15s ease,
+                        background
+                        0.15s ease;
+
+                }
+
+
+                #rankingModal
+                .ranking-row:hover {
+
+                    transform:
+                        translateY(-1px);
+
+                    background:
+                        rgba(
+                            255,
+                            255,
+                            255,
+                            0.09
+                        );
+
+                }
+
+
+                #rankingModal
+                .ranking-row.top-one {
+
+                    min-height: 78px;
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            rgba(
+                                255,
+                                193,
+                                7,
+                                0.20
+                            ),
+                            rgba(
+                                255,
+                                255,
+                                255,
+                                0.055
+                            )
+                        );
+
+                    border-color:
+                        rgba(
+                            255,
+                            193,
+                            7,
+                            0.38
+                        );
+
+                }
+
+
+                #rankingModal
+                .ranking-row.top-two {
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            rgba(
+                                190,
+                                200,
+                                210,
+                                0.14
+                            ),
+                            rgba(
+                                255,
+                                255,
+                                255,
+                                0.055
+                            )
+                        );
+
+                    border-color:
+                        rgba(
+                            210,
+                            215,
+                            220,
+                            0.28
+                        );
+
+                }
+
+
+                #rankingModal
+                .ranking-row.top-three {
+
+                    background:
+                        linear-gradient(
+                            135deg,
+                            rgba(
+                                205,
+                                127,
+                                50,
+                                0.16
+                            ),
+                            rgba(
+                                255,
+                                255,
+                                255,
+                                0.055
+                            )
+                        );
+
+                    border-color:
+                        rgba(
+                            205,
+                            127,
+                            50,
+                            0.28
+                        );
+
+                }
+
+
+                #rankingModal
+                .ranking-position {
+
+                    flex:
+                        0 0 42px;
+
+                    text-align: center;
+
+                    font-size: 20px;
+
+                    font-weight: 900;
+
+                }
+
+
+                #rankingModal
+                .ranking-row
+                :not(.top-one)
+                :not(.top-two)
+                :not(.top-three)
+                .ranking-position {
+
+                    font-size: 15px;
+
+                    opacity: 0.65;
+
+                }
+
+
+                #rankingModal .ranking-name {
+
+                    flex: 1;
+
+                    min-width: 0;
+
+                    overflow: hidden;
+
+                    text-overflow: ellipsis;
+
+                    white-space: nowrap;
+
+                    font-size: 17px;
+
+                    font-weight: 750;
+
+                }
+
+
+                #rankingModal .ranking-score {
+
+                    flex:
+                        0 0 auto;
+
+                    font-size: 19px;
+
+                    font-weight: 900;
+
+                    white-space: nowrap;
+
+                }
+
+
+                #rankingModal
+                .ranking-row.top-one
+                .ranking-score {
+
+                    font-size: 22px;
+
+                }
+
+
+                #rankingModal .ranking-empty {
+
+                    text-align: center;
+
+                    padding: 35px 15px;
+
+                    opacity: 0.7;
+
+                    font-size: 16px;
+
+                }
+
+
+                @keyframes rankingFadeIn {
+
+                    from {
+                        opacity: 0;
+                    }
+
+                    to {
+                        opacity: 1;
+                    }
+
+                }
+
+
+                @keyframes rankingPopIn {
+
+                    from {
+
+                        transform:
+                            translateY(12px)
+                            scale(0.97);
+
+                        opacity: 0;
+
+                    }
+
+                    to {
+
+                        transform:
+                            translateY(0)
+                            scale(1);
+
+                        opacity: 1;
+
+                    }
+
+                }
+
+
+                @media (
+                    max-width: 520px
+                ) {
+
+                    #rankingModal
+                    .ranking-overlay {
+
+                        padding: 12px;
+
+                    }
+
+
+                    #rankingModal
+                    .ranking-panel {
+
+                        border-radius: 20px;
+
+                        padding:
+                            24px
+                            14px
+                            16px;
+
+                    }
+
+
+                    #rankingModal
+                    .ranking-row {
+
+                        padding:
+                            9px
+                            10px;
+
+                        gap: 8px;
+
+                    }
+
+
+                    #rankingModal
+                    .ranking-position {
+
+                        flex-basis: 34px;
+
+                    }
+
+
+                    #rankingModal
+                    .ranking-name {
+
+                        font-size: 15px;
+
+                    }
+
+
+                    #rankingModal
+                    .ranking-score {
+
+                        font-size: 17px;
+
+                    }
+
+                }
+
+            `;
+
+
+            document.head.appendChild(style);
+
+
+            // ==========================================
+            // CHIUDI CLASSIFICA
+            // ==========================================
+
+            modal
+                .querySelector(
+                    ".ranking-close"
+                )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        modal.style.display =
+                            "none";
+
+                    }
+                );
+
+
+            modal
+                .querySelector(
+                    ".ranking-overlay"
+                )
+                .addEventListener(
+                    "click",
+                    (event) => {
+
+                        if (
+                            event.target ===
+                            event.currentTarget
+                        ) {
+
+                            modal.style.display =
+                                "none";
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        // ==========================================
+        // RIEMPI CLASSIFICA
+        // ==========================================
+
+        const list =
+            modal.querySelector(
+                ".ranking-list"
+            );
+
+        list.innerHTML = "";
+
+
+        if (players.length === 0) {
+
+            list.innerHTML = `
+
+                <div class="ranking-empty">
+
+                    📝
+
+                    <br><br>
+
+                    Non ci sono ancora
+                    partite registrate.
+
+                </div>
+
+            `;
+
+        } else {
+
+            players.forEach(
+                (player, index) => {
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    const position =
+                        index + 1;
+
+
+                    row.className =
+                        "ranking-row" +
+
+                        (
+                            position === 1
+                                ? " top-one"
+                                : ""
+                        ) +
+
+                        (
+                            position === 2
+                                ? " top-two"
+                                : ""
+                        ) +
+
+                        (
+                            position === 3
+                                ? " top-three"
+                                : ""
+                        );
+
+
+                    let medal = "";
+
+
+                    if (
+                        position === 1
+                    ) {
+
+                        medal = "🥇";
+
+                    } else if (
+                        position === 2
+                    ) {
+
+                        medal = "🥈";
+
+                    } else if (
+                        position === 3
+                    ) {
+
+                        medal = "🥉";
+
+                    }
+
+
+                    const safeName =
+                        String(
+                            player.username ??
+                            "Giocatore"
+                        );
+
+
+                    row.innerHTML = `
+
+                        <div class="ranking-position">
+
+                            ${
+                                medal ||
+                                position
+                            }
+
+                        </div>
+
+
+                        <div class="ranking-name"></div>
+
+
+                        <div class="ranking-score">
+
+                            ${
+                                Number(
+                                    player.score
+                                ) || 0
+                            }/26
+
+                        </div>
+
+                    `;
+
+
+                    // Evita che il nome venga interpretato come HTML.
+                    row.querySelector(
+                        ".ranking-name"
+                    ).textContent =
+                        safeName;
+
+
+                    list.appendChild(row);
+
+                }
+            );
+
+        }
+
+
+        modal.style.display =
+            "block";
+
 
     } catch (error) {
 
@@ -1499,6 +2357,7 @@ async function showRanking() {
             "Errore caricamento classifica:",
             error
         );
+
 
         alert(
             "❌ Impossibile caricare la classifica.\n\n" +
