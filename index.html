@@ -6,16 +6,64 @@
     <title>Anime Passaparola</title>
 
     <style>
-        * {
-            box-sizing: border-box;
+
+        :root {
+            --bg: #070812;
+            --panel: rgba(18, 21, 38, 0.82);
+            --panel-strong: rgba(13, 16, 30, 0.94);
+            --border: rgba(255,255,255,.12);
+            --text: #f7f8ff;
+            --muted: #aeb4ca;
+            --accent: #7c5cff;
+            --accent-2: #22d3ee;
+            --success: #25d366;
+            --danger: #ff4d67;
+            --pass: #f6c945;
+            --shadow: 0 24px 70px rgba(0,0,0,.42);
         }
+
+        * { box-sizing: border-box; }
+
+        html, body { min-height: 100%; }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background: #101010;
-            color: white;
-            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(124,92,255,.18), transparent 28%),
+                radial-gradient(circle at 85% 20%, rgba(34,211,238,.12), transparent 24%),
+                radial-gradient(circle at 50% 100%, rgba(124,92,255,.10), transparent 32%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            letter-spacing: .1px;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .18;
+            background-image:
+                linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, black, transparent 90%);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            right: -180px;
+            bottom: -180px;
+            border-radius: 50%;
+            background: rgba(124,92,255,.16);
+            filter: blur(90px);
+            pointer-events: none;
         }
 
         .screen {
@@ -25,125 +73,210 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 20px;
+            padding: 28px;
+            position: relative;
+            animation: screenIn .38s ease both;
         }
 
+        @keyframes screenIn {
+            from { opacity: 0; transform: translateY(10px) scale(.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h1, h2 { letter-spacing: -.8px; }
+
         h1 {
-            font-size: 42px;
-            margin-bottom: 40px;
+            font-size: clamp(42px, 6vw, 76px);
+            line-height: .98;
+            margin: 0 0 14px;
+            font-weight: 900;
+            background: linear-gradient(110deg, #fff, #b9b1ff 48%, #7de7f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 12px 30px rgba(124,92,255,.18));
+        }
+
+        h1::after {
+            content: "IL QUIZ ANIME A TEMPO";
+            display: block;
+            margin-top: 18px;
+            font-size: 12px;
+            letter-spacing: 4px;
+            font-weight: 800;
+            color: var(--muted);
         }
 
         h2 {
-            font-size: 30px;
-            margin-bottom: 30px;
+            font-size: clamp(28px, 4vw, 44px);
+            margin: 0 0 26px;
+            font-weight: 850;
         }
+
+        button, input, textarea, select { font: inherit; }
 
         button {
             cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
+            color: var(--text);
+            font-weight: 800;
+            border: 1px solid var(--border);
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
         }
 
-        /* MENU */
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.28);
+        }
+
+        button:active { transform: translateY(0) scale(.98); }
+
+        #menuScreen {
+            gap: 0;
+            padding-top: 70px;
+        }
+
+        #menuScreen::before {
+            content: "26 LETTERE • 2 GIRI • 1 CAMPIONE";
+            position: absolute;
+            top: 28px;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        #menuScreen::after {
+            content: "";
+            position: absolute;
+            width: min(560px, 85vw);
+            height: 560px;
+            border: 1px solid rgba(124,92,255,.13);
+            border-radius: 50%;
+            box-shadow: 0 0 0 40px rgba(124,92,255,.025), 0 0 0 80px rgba(124,92,255,.018);
+            z-index: -1;
+        }
 
         #menuScreen button {
-            width: 280px;
-            padding: 18px;
-            margin: 10px;
-            border-radius: 12px;
-            border: 2px solid #555;
-            background: #222;
-            color: white;
-            font-size: 18px;
-            transition: 0.2s;
+            width: min(340px, 88vw);
+            padding: 17px 22px;
+            margin: 7px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(124,92,255,.20), rgba(34,211,238,.08));
+            backdrop-filter: blur(12px);
+            font-size: 17px;
         }
 
-        #menuScreen button:hover {
-            background: #333;
-            transform: scale(1.03);
+        #startButton {
+            border-color: rgba(124,92,255,.6) !important;
+            background: linear-gradient(135deg, #7c5cff, #5d4be0) !important;
+            box-shadow: 0 14px 36px rgba(124,92,255,.28);
         }
+
+        #startButton:hover { box-shadow: 0 18px 42px rgba(124,92,255,.40); }
+
+        #rankingButton:hover { border-color: rgba(34,211,238,.5); }
 
         #adminButton {
-            margin-top: 30px !important;
-            width: 180px !important;
+            margin-top: 28px !important;
+            width: 210px !important;
             padding: 10px !important;
-            font-size: 14px !important;
-            border-color: #444 !important;
-            color: #aaa !important;
+            font-size: 12px !important;
+            background: rgba(255,255,255,.035) !important;
+            color: #969db5 !important;
         }
 
-        /* INPUT GENERALI */
-
-        input,
-        textarea,
-        select {
-            font-family: inherit;
+        #playerScreen, #adminLoginScreen {
+            background: radial-gradient(circle at 50% 35%, rgba(124,92,255,.12), transparent 42%);
         }
 
-        /* NOME / LOGIN */
-
-        #playerScreen input,
-        #adminLoginScreen input {
-            width: 280px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: none;
-            border-radius: 10px;
-            background: #222;
-            color: white;
-            font-size: 18px;
+        #playerScreen input, #adminLoginScreen input {
+            width: min(360px, 88vw);
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: rgba(12,15,28,.78);
+            color: var(--text);
+            font-size: 17px;
             text-align: center;
+            outline: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
         }
 
-        #continueButton,
-        #adminLoginButton {
-            width: 280px;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            background: #2196f3;
-            color: white;
-            font-size: 18px;
+        input:focus, textarea:focus, select:focus {
+            border-color: rgba(124,92,255,.8) !important;
+            box-shadow: 0 0 0 4px rgba(124,92,255,.12) !important;
+        }
+
+        #continueButton, #adminLoginButton {
+            width: min(360px, 88vw);
+            padding: 16px;
+            border: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #7c5cff, #5d4be0);
+            box-shadow: 0 12px 32px rgba(124,92,255,.25);
+            font-size: 17px;
         }
 
         #adminBackButton {
-            width: 280px;
-            padding: 12px;
-            margin-top: 10px;
-            border: 2px solid #555;
-            border-radius: 10px;
-            background: #222;
-            color: white;
-            font-size: 16px;
-        }
-
-        /* GIOCO */
-
-        #gameScreen {
-            overflow: hidden;
+            width: min(360px, 88vw);
+            padding: 13px;
+            margin-top: 8px;
+            border-radius: 14px;
+            background: rgba(255,255,255,.05);
         }
 
         .game-header {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-
+            top: 22px;
+            left: 22px;
+            right: 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 5;
         }
 
-        .player-name-display,
-        .score-display {
-            font-size: 18px;
-            font-weight: bold;
+        .player-name-display, .score-display {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(12,15,28,.68);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 25px rgba(0,0,0,.18);
+            font-size: 14px;
+        }
+
+        .score-display { color: #dcd8ff; }
+
+        #gameScreen {
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, rgba(124,92,255,.08), transparent 45%);
         }
 
         .wheel {
             position: relative;
-            width: min(90vw, 620px);
-            height: min(90vw, 620px);
+            width: min(88vw, 660px);
+            height: min(88vw, 660px);
+            filter: drop-shadow(0 24px 55px rgba(0,0,0,.32));
+        }
+
+        .wheel::before, .wheel::after {
+            content: "";
+            position: absolute;
+            inset: 7%;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .wheel::before {
+            border: 1px solid rgba(124,92,255,.25);
+            box-shadow: 0 0 70px rgba(124,92,255,.12), inset 0 0 50px rgba(124,92,255,.06);
+        }
+
+        .wheel::after {
+            inset: 18%;
+            border: 1px dashed rgba(255,255,255,.07);
         }
 
         #letters {
@@ -156,361 +289,323 @@
             position: absolute;
             left: 50%;
             top: 50%;
-
-            width: 48px;
-            height: 48px;
-
-            margin-left: -24px;
-            margin-top: -24px;
-
+            width: 50px;
+            height: 50px;
+            margin-left: -25px;
+            margin-top: -25px;
             border-radius: 50%;
-            border: 2px solid #666;
-
-            background: #222;
-            color: white;
-
-            font-size: 17px;
-
-            transform:
-                rotate(var(--angle))
-                translateY(-270px)
-                rotate(calc(var(--angle) * -1));
-
-            transition: 0.2s;
+            border: 2px solid rgba(255,255,255,.16);
+            background: linear-gradient(145deg, #242943, #111526);
+            color: #fff;
+            font-size: 16px;
+            box-shadow: 0 7px 20px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+            transform: rotate(var(--angle)) translateY(-290px) rotate(calc(var(--angle) * -1));
         }
 
         .letter:hover {
-            background: #333;
-
-            transform:
-                rotate(var(--angle))
-                translateY(-270px)
-                rotate(calc(var(--angle) * -1))
-                scale(1.15);
+            border-color: rgba(124,92,255,.9);
+            box-shadow: 0 0 0 6px rgba(124,92,255,.10), 0 10px 25px rgba(0,0,0,.32);
+            transform: rotate(var(--angle)) translateY(-290px) rotate(calc(var(--angle) * -1)) scale(1.16);
         }
 
         .letter.correct {
-            background: #19b84a;
-            border-color: #19b84a;
+            background: linear-gradient(145deg, #2de174, #159947);
+            border-color: #5af08f;
+            box-shadow: 0 0 24px rgba(37,211,102,.28);
         }
 
         .letter.wrong {
-            background: #e53935;
-            border-color: #e53935;
+            background: linear-gradient(145deg, #ff5b70, #c5223b);
+            border-color: #ff8291;
+            box-shadow: 0 0 24px rgba(255,77,103,.25);
         }
 
         .letter.passed {
-            background: #f4c430;
-            border-color: #f4c430;
-            color: black;
+            background: linear-gradient(145deg, #ffe16a, #d8a91c);
+            border-color: #ffe88c;
+            color: #16130a;
+            box-shadow: 0 0 24px rgba(246,201,69,.22);
         }
 
         .center-score {
             position: absolute;
             left: 50%;
             top: 50%;
-
             transform: translate(-50%, -50%);
-
-            width: 160px;
-            height: 160px;
-
+            width: 178px;
+            height: 178px;
             border-radius: 50%;
-
-            background: #181818;
-            border: 3px solid #555;
-
+            background: radial-gradient(circle at 35% 28%, #242a49, #0d1020 70%);
+            border: 3px solid rgba(124,92,255,.55);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 3px;
+            font-weight: 900;
+            box-shadow: 0 0 0 10px rgba(124,92,255,.04), 0 20px 50px rgba(0,0,0,.4);
         }
 
         #scoreDisplay {
-            font-size: 38px;
-            margin-top: 5px;
+            font-size: 48px;
+            line-height: 1;
+            margin-top: 8px;
+            letter-spacing: -2px;
+            color: #fff;
         }
-
-        /* DOMANDA */
 
         #questionScreen {
             justify-content: flex-start;
-            padding-top: 60px;
+            padding-top: 70px;
+            background: radial-gradient(circle at 50% 20%, rgba(124,92,255,.14), transparent 42%);
         }
 
         #questionLetter {
-            width: 90px;
-            height: 90px;
-
+            width: 104px;
+            height: 104px;
             border-radius: 50%;
-
-            background: #222;
-            border: 3px solid #777;
-
+            background: radial-gradient(circle at 35% 25%, #2d3356, #111426 70%);
+            border: 3px solid rgba(124,92,255,.75);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 48px;
+            font-weight: 950;
+            margin-bottom: 22px;
+            box-shadow: 0 0 0 10px rgba(124,92,255,.06), 0 18px 45px rgba(0,0,0,.35);
+            animation: letterPulse 1.8s ease-in-out infinite;
+        }
 
-            font-size: 42px;
-            font-weight: bold;
-
-            margin-bottom: 25px;
+        @keyframes letterPulse {
+            0%, 100% { box-shadow: 0 0 0 10px rgba(124,92,255,.06), 0 18px 45px rgba(0,0,0,.35); }
+            50% { box-shadow: 0 0 0 16px rgba(124,92,255,.035), 0 20px 55px rgba(124,92,255,.14); }
         }
 
         #questionText {
-            width: min(750px, 90vw);
-            font-size: 24px;
-            line-height: 1.5;
-            margin-bottom: 25px;
+            width: min(820px, 92vw);
+            padding: 25px 28px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(12,15,28,.76);
+            backdrop-filter: blur(14px);
+            font-size: clamp(20px, 3vw, 28px);
+            line-height: 1.45;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
         }
 
         #timer {
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            min-width: 115px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.055);
+            border: 1px solid var(--border);
+            font-size: 18px;
+            font-weight: 900;
+            margin-bottom: 18px;
         }
 
         #answerInput {
-            width: min(550px, 90vw);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #555;
-            background: #222;
+            width: min(620px, 92vw);
+            padding: 16px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(12,15,28,.86);
             color: white;
             font-size: 18px;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            outline: none;
         }
 
         .question-buttons {
+            width: min(620px, 92vw);
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            justify-content: stretch;
         }
 
-        #submitButton,
-        #passButton {
-            padding: 14px 25px;
-            border: none;
-            border-radius: 10px;
+        /* PASSA a sinistra, CONFERMA a destra */
+        #passButton { order: 1; }
+        #submitButton { order: 2; }
+
+        #submitButton, #passButton {
+            flex: 1 1 0;
+            min-height: 54px;
+            padding: 14px 20px;
+            border: 0;
+            border-radius: 14px;
             font-size: 16px;
         }
 
         #submitButton {
-            background: #19b84a;
-            color: white;
+            background: linear-gradient(135deg, #2bdc72, #159a4b);
+            color: #fff;
+            box-shadow: 0 10px 28px rgba(37,211,102,.18);
         }
 
         #passButton {
-            background: #f4c430;
-            color: black;
+            background: linear-gradient(135deg, #ffe16a, #d7aa20);
+            color: #16130a;
+            box-shadow: 0 10px 28px rgba(246,201,69,.15);
         }
 
         #resultMessage {
-            width: min(750px, 90vw);
-            min-height: 35px;
-            margin-top: 25px;
-            font-size: 20px;
-            font-weight: bold;
+            width: min(820px, 92vw);
+            min-height: 40px;
+            margin-top: 20px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 900;
         }
 
-        .correct-result {
-            color: #19b84a;
-        }
+        .correct-result { color: #65ef9a; }
+        .wrong-result { color: #ff7385; }
+        .passed-result { color: #ffe16a; }
 
-        .wrong-result {
-            color: #ff5252;
-        }
-
-        .passed-result {
-            color: #f4c430;
-        }
-
-        /* FINE PARTITA */
-
-        .final-box {
-            width: min(500px, 90vw);
-            padding: 40px 25px;
-            border-radius: 20px;
-            background: #181818;
-            border: 2px solid #444;
+        .final-box, .admin-box, .editor-box {
+            width: min(850px, 94vw);
+            padding: 38px 28px;
+            border-radius: 24px;
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .final-title {
-            font-size: 38px;
-            margin-bottom: 15px;
+            font-size: clamp(32px, 5vw, 48px);
+            margin-bottom: 12px;
+            font-weight: 950;
+            background: linear-gradient(110deg, #fff, #b9b1ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .final-player {
-            font-size: 22px;
-            margin-bottom: 25px;
+            color: var(--muted);
+            font-size: 20px;
+            margin-bottom: 24px;
         }
 
         .final-score-label {
-            font-size: 20px;
-            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 3px;
+            font-weight: 900;
+            margin-bottom: 4px;
         }
 
         .final-score {
-            font-size: 70px;
-            font-weight: bold;
+            font-size: clamp(64px, 10vw, 94px);
+            line-height: 1;
+            font-weight: 950;
             margin-bottom: 10px;
         }
 
         .final-correct {
-            font-size: 18px;
-            color: #aaa;
+            font-size: 17px;
+            color: var(--muted);
             margin-bottom: 30px;
         }
 
         #returnMenuButton {
-            width: 280px;
+            width: min(320px, 90%);
             padding: 16px;
-            border: none;
-            border-radius: 10px;
-            background: #2196f3;
-            color: white;
-            font-size: 18px;
+            border: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #7c5cff, #5d4be0);
+            font-size: 17px;
+            box-shadow: 0 12px 32px rgba(124,92,255,.24);
         }
 
-        /* ADMIN */
-
-        #adminScreen {
+        #adminScreen, #questionEditorScreen {
             justify-content: flex-start;
-            padding-top: 40px;
+            padding-top: 45px;
         }
 
-        .admin-box {
-            width: min(850px, 95vw);
-            padding: 30px 20px;
-            border-radius: 20px;
-            background: #181818;
-            border: 2px solid #444;
-        }
-
-        .admin-box h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
+        .admin-box h2, .editor-box h2 { margin-top: 0; }
 
         .admin-subtitle {
-            color: #aaa;
+            color: var(--muted);
             margin-bottom: 25px;
         }
 
         .admin-button {
             width: 100%;
-            padding: 16px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 10px;
-            background: #222;
-            color: white;
-            font-size: 17px;
+            padding: 15px;
+            margin: 7px 0;
+            border-radius: 13px;
+            background: rgba(255,255,255,.045);
+            font-size: 16px;
         }
 
-        .admin-button:hover {
-            background: #333;
-        }
+        .admin-button:hover { background: rgba(124,92,255,.13); }
 
         .danger-button {
-            background: #b71c1c;
+            background: rgba(255,77,103,.10);
+            border-color: rgba(255,77,103,.25);
         }
 
-        .danger-button:hover {
-            background: #d32f2f;
-        }
+        .danger-button:hover { background: rgba(255,77,103,.18); }
 
-        .admin-back {
-            background: #2196f3;
-        }
-
-        /* EDITOR */
-
-        .editor-box {
-            width: min(850px, 95vw);
-            padding: 30px 20px;
-            border-radius: 20px;
-            background: #181818;
-            border: 2px solid #444;
-        }
-
-        .editor-box h2 {
-            margin-top: 0;
-        }
+        .admin-back { background: rgba(34,211,238,.08); }
 
         .letter-selector {
             display: flex;
             flex-wrap: wrap;
-            gap: 7px;
+            gap: 8px;
             justify-content: center;
             margin-bottom: 25px;
         }
 
         .letter-selector button {
-            width: 42px;
-            height: 42px;
+            width: 43px;
+            height: 43px;
             border-radius: 50%;
-            border: 2px solid #555;
-            background: #222;
-            color: white;
-            font-weight: bold;
+            background: rgba(255,255,255,.045);
         }
 
-        .letter-selector button.active {
-            background: #2196f3;
-            border-color: #2196f3;
+        .letter-selector button:hover, .letter-selector button.active {
+            background: #7c5cff;
+            border-color: #9a87ff;
+            box-shadow: 0 7px 18px rgba(124,92,255,.25);
         }
 
         .editor-label {
             display: block;
             text-align: left;
             margin: 18px 0 8px;
-            font-weight: bold;
+            font-weight: 850;
+            color: #dce0f2;
+            font-size: 13px;
+            letter-spacing: 1px;
         }
 
-        #editQuestion {
+        #editQuestion, #editAnswer, #editAcceptedAnswers {
             width: 100%;
-            min-height: 120px;
+            padding: 14px;
+            border-radius: 13px;
+            border: 1px solid var(--border);
+            background: rgba(7,9,18,.7);
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #editQuestion, #editAcceptedAnswers {
+            min-height: 110px;
             resize: vertical;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #555;
-            background: #222;
-            color: white;
-            font-size: 17px;
-        }
-
-        #editAnswer {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #555;
-            background: #222;
-            color: white;
-            font-size: 17px;
-        }
-
-        #editAcceptedAnswers {
-            width: 100%;
-            min-height: 100px;
-            resize: vertical;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #555;
-            background: #222;
-            color: white;
-            font-size: 17px;
         }
 
         .editor-help {
             text-align: left;
-            color: #999;
-            font-size: 14px;
+            color: #8991ab;
+            font-size: 13px;
             margin-top: 8px;
         }
 
@@ -524,82 +619,93 @@
         .editor-actions button {
             flex: 1;
             min-width: 180px;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            padding: 14px;
+            border: 0;
+            border-radius: 13px;
+            font-size: 15px;
         }
 
-        #saveQuestionButton {
-            background: #19b84a;
-            color: white;
-        }
-
-        #resetQuestionButton {
-            background: #555;
-            color: white;
-        }
-
-        #closeEditorButton {
-            background: #2196f3;
-            color: white;
-        }
-
-        /* MOBILE */
+        #saveQuestionButton { background: linear-gradient(135deg, #2bdc72, #159a4b); }
+        #resetQuestionButton { background: rgba(255,255,255,.08); }
+        #closeEditorButton { background: linear-gradient(135deg, #7c5cff, #5d4be0); }
 
         @media (max-width: 650px) {
+            .screen { padding: 20px 14px; }
 
-            h1 {
-                font-size: 32px;
+            .game-header {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+            }
+
+            .player-name-display, .score-display {
+                padding: 8px 11px;
+                font-size: 12px;
             }
 
             .wheel {
-                width: 95vw;
-                height: 95vw;
+                width: 96vw;
+                height: 96vw;
             }
 
             .letter {
-                width: 38px;
-                height: 38px;
-                margin-left: -19px;
-                margin-top: -19px;
-                font-size: 14px;
-
-                transform:
-                    rotate(var(--angle))
-                    translateY(-42vw)
-                    rotate(calc(var(--angle) * -1));
+                width: 40px;
+                height: 40px;
+                margin-left: -20px;
+                margin-top: -20px;
+                font-size: 13px;
+                transform: rotate(var(--angle)) translateY(-43vw) rotate(calc(var(--angle) * -1));
             }
 
             .letter:hover {
-                transform:
-                    rotate(var(--angle))
-                    translateY(-42vw)
-                    rotate(calc(var(--angle) * -1))
-                    scale(1.1);
+                transform: rotate(var(--angle)) translateY(-43vw) rotate(calc(var(--angle) * -1)) scale(1.1);
             }
 
             .center-score {
-                width: 110px;
-                height: 110px;
+                width: 116px;
+                height: 116px;
+                font-size: 10px;
             }
 
-            #scoreDisplay {
-                font-size: 28px;
+            #scoreDisplay { font-size: 32px; }
+
+            #questionScreen { padding-top: 42px; }
+
+            #questionLetter {
+                width: 82px;
+                height: 82px;
+                font-size: 38px;
             }
 
             #questionText {
-                font-size: 20px;
+                padding: 20px 16px;
+                font-size: 19px;
             }
 
-            .final-title {
-                font-size: 30px;
+            .question-buttons {
+                gap: 8px;
             }
 
-            .final-score {
-                font-size: 55px;
+            #submitButton, #passButton {
+                min-height: 50px;
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+
+            .final-box, .admin-box, .editor-box {
+                padding: 28px 18px;
+                border-radius: 20px;
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
     </style>
 </head>
 
@@ -810,12 +916,12 @@
 
         <div class="question-buttons">
 
-            <button id="submitButton">
-                ✓ CONFERMA
-            </button>
-
             <button id="passButton">
                 ⏭ PASSA
+            </button>
+
+            <button id="submitButton">
+                ✓ CONFERMA
             </button>
 
         </div>
@@ -858,6 +964,12 @@
         </div>
 
     </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
 
 
     <script src="script.js"></script>
