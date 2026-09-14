@@ -163,11 +163,8 @@ let editingLetter = "A";
 // STATO PARTITA - RECUPERO REFRESH/DISCONNESSIONE
 // ==========================================
 
-const GAME_STATE_KEY = "animePassaparolaGameState_v3";
-
-let activeQuestion = false;
-let questionOpenedAt = null;
-let replacementLetters = {};
+// Stato partita: le variabili e le chiavi sono definite
+// nella sezione SALVATAGGIO STATO PARTITA - V5 in fondo al file.
 
 
 
@@ -869,6 +866,9 @@ function startGame() {
 
 
     createLetters();
+
+    // Salva immediatamente anche quando siamo sulla ruota.
+    saveGameState();
 }
 
 
@@ -1138,7 +1138,7 @@ function timeExpired() {
 
     activeQuestion = false;
     questionOpenedAt = null;
-    clearSavedGameState();
+    saveGameState();
 
 
     resultMessage.textContent =
@@ -1269,7 +1269,7 @@ function checkAnswer() {
 
 
     updateScore();
-    clearSavedGameState();
+    saveGameState();
 
     createLetters();
 
@@ -1298,7 +1298,7 @@ passButton.addEventListener("click", () => {
 
     activeQuestion = false;
     questionOpenedAt = null;
-    clearSavedGameState();
+    saveGameState();
 
 
     resultMessage.textContent =
@@ -2529,16 +2529,39 @@ function getQuestionForLetter(letter) {
 
 
 // ==========================================
-// SALVATAGGIO STATO PARTITA
+// SALVATAGGIO STATO PARTITA - V5
 // ==========================================
+//
+// Regole:
+// 1) Una partita attiva viene salvata continuamente.
+// 2) Refresh/disconnessione durante una domanda:
+//    la domanda viene considerata PASSATA e sostituita
+//    nel secondo giro.
+// 3) Refresh sulla ruota:
+//    la partita resta sulla ruota, senza ricominciare.
+// 4) PASSA volontario:
+//    la stessa domanda resta disponibile nel secondo giro.
+// 5) Il salvataggio viene cancellato solo quando:
+//    - la partita termina;
+//    - il giocatore torna volontariamente al menu;
+//    - parte una nuova partita.
+//
+// Manteniamo la chiave V3 per compatibilità e usiamo V5
+// come nuova chiave primaria.
+const GAME_STATE_KEY = "animePassaparolaGameState_v5";
+const LEGACY_GAME_STATE_KEY = "animePassaparolaGameState_v3";
 
-function saveGameState() {
+let activeQuestion = false;
+let questionOpenedAt = null;
+let replacementLetters = {};
 
-    if (!playerName) {
-        return;
-    }
+let gameBooting = true;
+let autosaveTimer = null;
 
-    const state = {
+
+function buildGameState() {
+
+    return {
         playerName,
         score,
         correctAnswers,
@@ -2551,95 +2574,195 @@ function saveGameState() {
         savedAt: Date.now()
     };
 
+}
+
+
+function saveGameState() {
+
+    if (!playerName) {
+        return false;
+    }
+
     try {
+
+        const serialized =
+            JSON.stringify(buildGameState());
+
         localStorage.setItem(
             GAME_STATE_KEY,
-            JSON.stringify(state)
+            serialized
         );
+
+        // Compatibilità con eventuali versioni precedenti.
+        localStorage.setItem(
+            LEGACY_GAME_STATE_KEY,
+            serialized
+        );
+
+        return true;
+
     } catch (error) {
-        console.error("Errore salvataggio stato partita:", error);
+
+        console.error(
+            "Errore salvataggio stato partita:",
+            error
+        );
+
+        return false;
     }
+
+}
+
+
+function readSavedGameState() {
+
+    try {
+
+        let rawState =
+            localStorage.getItem(GAME_STATE_KEY);
+
+        // Se non esiste ancora V5, prova a recuperare V3.
+        if (!rawState) {
+
+            rawState =
+                localStorage.getItem(
+                    LEGACY_GAME_STATE_KEY
+                );
+
+        }
+
+        if (!rawState) {
+            return null;
+        }
+
+        const state =
+            JSON.parse(rawState);
+
+        if (
+            !state ||
+            typeof state.playerName !== "string" ||
+            !state.playerName.trim() ||
+            !state.letterStatus ||
+            ![1, 2].includes(
+                Number(state.round)
+            )
+        ) {
+
+            return null;
+        }
+
+        return state;
+
+    } catch (error) {
+
+        console.error(
+            "Errore lettura stato partita:",
+            error
+        );
+
+        return null;
+    }
+
 }
 
 
 function clearSavedGameState() {
 
     try {
-        localStorage.removeItem(GAME_STATE_KEY);
+
+        localStorage.removeItem(
+            GAME_STATE_KEY
+        );
+
+        localStorage.removeItem(
+            LEGACY_GAME_STATE_KEY
+        );
+
     } catch (error) {
-        console.error("Errore cancellazione stato partita:", error);
+
+        console.error(
+            "Errore cancellazione stato partita:",
+            error
+        );
+
     }
+
 }
 
 
-function restoreSavedGameState() {
+function applySavedGameState(state) {
 
-    let rawState;
+    playerName =
+        state.playerName;
 
-    try {
-        rawState = localStorage.getItem(GAME_STATE_KEY);
-    } catch (error) {
-        console.error("Errore lettura stato partita:", error);
-        return false;
-    }
+    score =
+        Number(state.score) || 0;
 
-    if (!rawState) {
-        return false;
-    }
+    correctAnswers =
+        Number(state.correctAnswers) || 0;
 
-    let state;
+    round =
+        Number(state.round);
 
-    try {
-        state = JSON.parse(rawState);
-    } catch (error) {
-        clearSavedGameState();
-        return false;
-    }
-
-    if (
-        !state ||
-        typeof state.playerName !== "string" ||
-        !state.letterStatus ||
-        ![1, 2].includes(Number(state.round))
-    ) {
-        clearSavedGameState();
-        return false;
-    }
-
-    playerName = state.playerName;
-    score = Number(state.score) || 0;
-    correctAnswers = Number(state.correctAnswers) || 0;
-    round = Number(state.round);
     replacementLetters = {
         ...(state.replacementLetters || {})
     };
 
-    for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+
+    for (
+        const letter of
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    ) {
+
         letterStatus[letter] =
-            state.letterStatus[letter] || "pending";
+            state.letterStatus[letter] ||
+            "pending";
+
     }
 
-    // Se la pagina è stata ricaricata mentre una domanda era aperta,
-    // quella domanda viene automaticamente considerata PASSATA.
+
+    // --------------------------------------------------
+    // REFRESH / DISCONNESSIONE DURANTE UNA DOMANDA
+    // --------------------------------------------------
+    //
+    // La domanda NON viene riaperta.
+    // La lettera diventa PASSATA e viene marcata
+    // per ricevere una domanda alternativa nel secondo giro.
+    //
     if (
         state.activeQuestion &&
         state.currentLetter &&
         letterStatus[state.currentLetter] === "pending"
     ) {
-        letterStatus[state.currentLetter] = "passed";
-        replacementLetters[state.currentLetter] = true;
+
+        letterStatus[state.currentLetter] =
+            "passed";
+
+        replacementLetters[
+            state.currentLetter
+        ] = true;
+
     }
+
 
     currentLetter = "";
     activeQuestion = false;
     questionOpenedAt = null;
 
-    playerNameDisplay.textContent = playerName;
-    playerNameInput.value = playerName;
+
+    playerNameDisplay.textContent =
+        playerName;
+
+    playerNameInput.value =
+        playerName;
+
 
     updateScore();
     createLetters();
 
+
+    // Mostra direttamente la partita.
+    menuScreen.style.display = "none";
     playerScreen.style.display = "none";
     questionScreen.style.display = "none";
     endScreen.style.display = "none";
@@ -2648,67 +2771,203 @@ function restoreSavedGameState() {
     questionEditorScreen.style.display = "none";
     gameScreen.style.display = "flex";
 
-    // Lo stato è stato consumato: non dobbiamo ripetere la penalità
-    // al prossimo refresh se il giocatore non ha ancora cliccato una lettera.
+
+    // Salva il nuovo stato dopo l'eventuale penalità
+    // per evitare che al successivo refresh la stessa
+    // domanda venga passata una seconda volta.
     saveGameState();
 
-    return true;
+}
+
+
+function restoreSavedGameState() {
+
+    const state =
+        readSavedGameState();
+
+    if (!state) {
+        return false;
+    }
+
+    try {
+
+        applySavedGameState(state);
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Errore ripristino partita:",
+            error
+        );
+
+        return false;
+    }
+
 }
 
 
 // ==========================================
-// SALVA STATO PRIMA DI USCITA / REFRESH
+// AUTOSAVE
+// ==========================================
+//
+// Non ci affidiamo solamente a beforeunload/pagehide.
+// Durante una partita lo stato viene aggiornato
+// periodicamente. In questo modo un refresh improvviso
+// trova già un salvataggio recente.
+function startAutosave() {
+
+    clearInterval(autosaveTimer);
+
+    autosaveTimer =
+        setInterval(() => {
+
+            if (
+                !gameBooting &&
+                playerName
+            ) {
+
+                saveGameState();
+
+            }
+
+        }, 500);
+
+}
+
+
+function stopAutosave() {
+
+    clearInterval(autosaveTimer);
+
+    autosaveTimer = null;
+
+}
+
+
+// ==========================================
+// USCITA / REFRESH
 // ==========================================
 
-window.addEventListener("pagehide", () => {
+function persistBeforeExit() {
 
-    if (playerName) {
-        saveGameState();
-    }
-
-});
-
-
-window.addEventListener("beforeunload", () => {
-
-    if (playerName) {
-        saveGameState();
-    }
-
-});
-
-
-// Se la connessione torna dopo una perdita,
-// non riapriamo mai una domanda interrotta.
-window.addEventListener("online", () => {
-
-    if (activeQuestion && currentLetter) {
-
-        letterStatus[currentLetter] = "passed";
-        replacementLetters[currentLetter] = true;
-        activeQuestion = false;
-        questionOpenedAt = null;
-        clearInterval(timer);
-        clearTimeout(returnTimer);
+    if (
+        playerName &&
+        !gameBooting
+    ) {
 
         saveGameState();
 
-        questionScreen.style.display = "none";
-        gameScreen.style.display = "flex";
-
-        createLetters();
     }
 
-});
+}
+
+
+window.addEventListener(
+    "pagehide",
+    persistBeforeExit
+);
+
+
+window.addEventListener(
+    "beforeunload",
+    persistBeforeExit
+);
+
+
+// visibilitychange è utile soprattutto su mobile
+// e quando la scheda viene sospesa.
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.visibilityState === "hidden"
+        ) {
+
+            persistBeforeExit();
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// DISCONNESSIONE
+// ==========================================
+//
+// Se il browser segnala offline mentre una domanda
+// è aperta, la domanda viene considerata passata.
+// Non aspettiamo il ritorno online per riaprirla.
+window.addEventListener(
+    "offline",
+    () => {
+
+        if (
+            !gameBooting &&
+            playerName &&
+            activeQuestion &&
+            currentLetter
+        ) {
+
+            const interruptedLetter =
+                currentLetter;
+
+            clearInterval(timer);
+            clearTimeout(returnTimer);
+
+
+            letterStatus[
+                interruptedLetter
+            ] = "passed";
+
+            replacementLetters[
+                interruptedLetter
+            ] = true;
+
+
+            activeQuestion = false;
+            questionOpenedAt = null;
+            currentLetter = "";
+
+
+            saveGameState();
+
+
+            questionScreen.style.display =
+                "none";
+
+            gameScreen.style.display =
+                "flex";
+
+
+            createLetters();
+
+        }
+
+    }
+);
 
 
 // ==========================================
 // RIPRISTINO AUTOMATICO ALL'AVVIO
 // ==========================================
+//
+// IMPORTANTISSIMO:
+// prima proviamo a ripristinare.
+// Solo se non esiste una partita salvata
+// lasciamo il menu normale.
+const restoredGame =
+    restoreSavedGameState();
 
-restoreSavedGameState();
+gameBooting = false;
 
+startAutosave();
 
 console.log(
-    "Anime Passaparola caricato correttamente!"
+    restoredGame
+        ? "Anime Passaparola: partita ripristinata correttamente."
+        : "Anime Passaparola caricato correttamente!"
 );
