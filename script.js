@@ -993,7 +993,15 @@ function restoreInterruptedGame() {
         return;
     }
 
-    if (!state || !state.activeQuestion || !state.currentLetter) {
+    if (!state || !state.currentLetter || !state.playerName) {
+        clearGameState();
+        return;
+    }
+
+    // Se lo stato è stato salvato durante una domanda, la domanda
+    // interrotta viene automaticamente invalidata.
+    // I vecchi stati senza activeQuestion non vengono ripristinati.
+    if (state.activeQuestion !== true) {
         clearGameState();
         return;
     }
@@ -1053,13 +1061,20 @@ function restoreInterruptedGame() {
 // RILEVAMENTO REFRESH / CHIUSURA / OFFLINE
 // ==========================================
 
-window.addEventListener("beforeunload", () => {
+function saveInterruptedQuestion() {
 
-    if (activeQuestion && currentLetter) {
-        saveGameState();
+    if (!activeQuestion || !currentLetter || !playerName) {
+        return;
     }
 
-});
+    // Salvataggio sincrono: viene eseguito anche quando il browser
+    // sta per congelare/chiudere la pagina.
+    saveGameState();
+
+}
+
+window.addEventListener("beforeunload", saveInterruptedQuestion);
+window.addEventListener("pagehide", saveInterruptedQuestion);
 
 
 window.addEventListener("offline", () => {
