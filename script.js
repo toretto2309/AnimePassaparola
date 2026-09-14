@@ -165,11 +165,15 @@ let editingLetter = "A";
 
 const ADMIN_PASSWORD = "admin123";
 
+
 // ==========================================
 // SERVER
 // ==========================================
 
-const API_BASE = "http://localhost:3000";
+// MODIFICATO:
+// prima era http://localhost:3000
+// ora usa lo stesso dominio del sito
+const API_BASE = "";
 
 
 // ==========================================
@@ -522,7 +526,10 @@ function createLetterSelector() {
 
         letterSelector.appendChild(button);
     }
-}// ==========================================
+}
+
+
+// ==========================================
 // CARICA DOMANDA NELL'EDITOR
 // ==========================================
 
@@ -1295,7 +1302,10 @@ function returnToWheelAutomatically() {
         checkRound();
 
     }, 1500);
-}// ==========================================
+}
+
+
+// ==========================================
 // CONTROLLO ROUND
 // ==========================================
 
