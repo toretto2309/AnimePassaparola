@@ -820,6 +820,8 @@ playerNameInput.addEventListener("keydown", (event) => {
 
 function startGame() {
 
+    gameFinished = false;
+
     const name =
         playerNameInput.value.trim();
 
@@ -2412,8 +2414,15 @@ async function showRanking() {
 
 function endGame() {
 
+    // La partita è conclusa: blocchiamo l'autosave
+    // prima di cancellare lo stato.
+    gameFinished = true;
     activeQuestion = false;
     questionOpenedAt = null;
+
+    clearInterval(autosaveTimer);
+    autosaveTimer = null;
+
     clearSavedGameState();
 
     clearInterval(timer);
@@ -2454,6 +2463,9 @@ function endGame() {
 returnMenuButton.addEventListener(
     "click",
     () => {
+
+        gameFinished = true;
+        clearSavedGameState();
 
         endScreen.style.display =
             "none";
@@ -2557,6 +2569,7 @@ let replacementLetters = {};
 
 let gameBooting = true;
 let autosaveTimer = null;
+let gameFinished = false;
 
 
 function buildGameState() {
@@ -2571,6 +2584,7 @@ function buildGameState() {
         questionOpenedAt,
         letterStatus: { ...letterStatus },
         replacementLetters: { ...replacementLetters },
+        gameFinished,
         savedAt: Date.now()
     };
 
@@ -2578,6 +2592,12 @@ function buildGameState() {
 
 
 function saveGameState() {
+
+    // Una partita terminata non deve essere salvata.
+    // Evita che l'autosave ricrei lo stato subito dopo endGame().
+    if (gameFinished) {
+        return false;
+    }
 
     if (!playerName) {
         return false;
@@ -2638,6 +2658,26 @@ function readSavedGameState() {
         const state =
             JSON.parse(rawState);
 
+        // Non ripristinare mai uno stato marcato come concluso.
+        if (state.gameFinished === true) {
+            clearSavedGameState();
+            return null;
+        }
+
+        // Protezione per i vecchi salvataggi senza gameFinished:
+        // se non ci sono più lettere pending o passed, la partita era conclusa.
+        if (state.letterStatus) {
+            const statuses = Object.values(state.letterStatus);
+            const hasPendingOrPassed = statuses.some(
+                status => status === "pending" || status === "passed"
+            );
+
+            if (!hasPendingOrPassed) {
+                clearSavedGameState();
+                return null;
+            }
+        }
+
         if (
             !state ||
             typeof state.playerName !== "string" ||
@@ -2691,6 +2731,8 @@ function clearSavedGameState() {
 
 
 function applySavedGameState(state) {
+
+    gameFinished = false;
 
     playerName =
         state.playerName;
@@ -2835,6 +2877,7 @@ function startAutosave() {
 
             if (
                 !gameBooting &&
+                !gameFinished &&
                 playerName
             ) {
 
@@ -2864,7 +2907,8 @@ function persistBeforeExit() {
 
     if (
         playerName &&
-        !gameBooting
+        !gameBooting &&
+        !gameFinished
     ) {
 
         saveGameState();
@@ -2917,6 +2961,7 @@ window.addEventListener(
 
         if (
             !gameBooting &&
+            !gameFinished &&
             playerName &&
             activeQuestion &&
             currentLetter
