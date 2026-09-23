@@ -251,7 +251,7 @@ const defaultQuestions = {
 
     A: {
         question:
-            "Organizzazione criminale composta da ninja ricercati di alto livello",
+            "Nome giapponese dell'Organizzazione criminale composta da ninja ricercati di alto livello",
         acceptedAnswers: [
             "AKATSUKI"
         ],
@@ -283,10 +283,10 @@ const defaultQuestions = {
         question:
             "Anziano consigliere di Konoha, ex leader della Radice",
         acceptedAnswers: [
-            "DANZŌ SHIMURA"
+            "DANZŌ"
         ],
         correctDisplay:
-            "DANZŌ SHIMURA"
+            "DANZŌ"
     },
 
     E: {
@@ -333,10 +333,10 @@ const defaultQuestions = {
         question:
             "Fratello maggiore di Sasuke e membro del clan Uchiha.",
         acceptedAnswers: [
-            "ITACHI UCHIHA"
+            "ITACHI"
         ],
         correctDisplay:
-            "ITACHI UCHIHA"
+            "ITACHI"
     },
 
     J: {
@@ -373,10 +373,10 @@ const defaultQuestions = {
         question:
             "Rivale di Hashirama e protagonista della Quarta Guerra Ninja.",
         acceptedAnswers: [
-            "MADARA UCHIHA"
+            "MADARA"
         ],
         correctDisplay:
-            "MADARA UCHIHA"
+            "MADARA"
     },
 
     N: {
@@ -433,10 +433,10 @@ const defaultQuestions = {
         question:
             "Ultimo membro sopravvissuto del clan Uchiha dopo il massacro compiuto da Itachi",
         acceptedAnswers: [
-            "SASUKE UCHIHA"
+            "SASUKE"
         ],
         correctDisplay:
-            "SASUKE UCHIHA"
+            "SASUKE"
     },
 
     T: {
@@ -473,10 +473,10 @@ const defaultQuestions = {
         question:
             "Kunoichi di Konoha appartenente al Team 15, capace di utilizzare una tecnica che le conferisce caratteristiche feline e un’enorme agilità.",
         acceptedAnswers: [
-            "WASABI IZUNO"
+            "WASABI"
         ],
         correctDisplay:
-            "WASABI IZUNO"
+            "WASABI"
     },
 
     X: {
@@ -503,10 +503,10 @@ const defaultQuestions = {
         question:
             "Ninja della Nebbia, uno dei Sette Spadaccini e utilizzatore della gigantesca Kubikiribōchō.",
         acceptedAnswers: [
-            "ZABUZA MOMOCHI"
+            "ZABUZA"
         ],
         correctDisplay:
-            "ZABUZA MOMOCHI"
+            "ZABUZA"
     }
 
 };
@@ -1385,13 +1385,14 @@ function createLetters() {
                     letter;
 
 
-const angle =
+             const angle =
     (360 / 26) * index;
 
 button.style.setProperty(
     "--angle",
     `${angle}deg`
 );
+
 
                 updateLetterStyle(
                     button,
