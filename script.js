@@ -1385,11 +1385,13 @@ function createLetters() {
                     letter;
 
 
-                button.style.setProperty(
-                    "--i",
-                    index
-                );
+const angle =
+    (360 / 26) * index;
 
+button.style.setProperty(
+    "--angle",
+    `${angle}deg`
+);
 
                 updateLetterStyle(
                     button,
